@@ -16,9 +16,13 @@ module.exports = async (object, bucket, db, log) => {
 			await bucket.file(object.name).download({ destination: tempFilePath, validation: false })
 			let records = require(tempFilePath)
 			const batch = db.batch();
+			let stateRecorded = {};
+			
+			let parent = null;
+			records.forEach((record, index) => {
+				parent = db.collection(`vaccination_centre`).doc(record.cd).collection('locations')
 
-			records.forEach((record) => {
-				batch.set(db.collection('vaccination_centre').doc(), record)
+				batch.set(parent.doc(), record)
 			})
 			commitResponse = await batch.commit();
 			log(`Completed  ${commitResponse.length} vaccination centre data import at ${Date()}`)

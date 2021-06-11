@@ -259,9 +259,6 @@ Response
 GET http://localhost:5001/vaccinemy-101/asia-southeast2/vaccineMY101api/vaccination-centre
 ```
 
-Request Params
-state: "The state name in lowercase"
-
 Response
 ```json
 {
@@ -269,30 +266,92 @@ Response
   "message": "success",
   "data": [
     {
-      "st": "Johor",
-      "cd": "johor",
-      "dist": "Kota Tinggi",
-      "lon": "103.90124",
-      "ppvc": "Dewan Jubli Intan Kota Tinggi",
-      "linky": "",
-      "lat": "1.73618"
+      "state": "johor",
+      "state_fullname": "Johor",
+      "total_vaccination_locations": 26
     },
     {
-      "st": "Johor",
-      "cd": "johor",
-      "dist": "Mersing",
-      "lon": "",
-      "ppvc": "Hospital Mersing",
-      "linky": "",
-      "lat": ""
+      "state": "kedah",
+      "state_fullname": "Kedah",
+      "total_vaccination_locations": 21
     },
-    ...]
+    {
+      "state": "kelantan",
+      "state_fullname": "Kelantan",
+      "total_vaccination_locations": 31
+    },
+    {
+      "state": "labuan",
+      "state_fullname": "W.P. Labuan",
+      "total_vaccination_locations": 3
+    },
+    {
+      "state": "melaka",
+      "state_fullname": "Melaka",
+      "total_vaccination_locations": 10
+    },
+    {
+      "state": "negerisembilan",
+      "state_fullname": "Negeri Sembilan",
+      "total_vaccination_locations": 47
+    },
+    {
+      "state": "pahang",
+      "state_fullname": "Pahang",
+      "total_vaccination_locations": 53
+    },
+    {
+      "state": "penang",
+      "state_fullname": "Pulau Pinang",
+      "total_vaccination_locations": 11
+    },
+    {
+      "state": "perak",
+      "state_fullname": "Perak",
+      "total_vaccination_locations": 27
+    },
+    {
+      "state": "perlis",
+      "state_fullname": "Perlis",
+      "total_vaccination_locations": 2
+    },
+    {
+      "state": "sabah",
+      "state_fullname": "Sabah",
+      "total_vaccination_locations": 29
+    },
+    {
+      "state": "sarawak",
+      "state_fullname": "Sarawak",
+      "total_vaccination_locations": 71
+    },
+    {
+      "state": "selangor",
+      "state_fullname": "Selangor",
+      "total_vaccination_locations": 28
+    },
+    {
+      "state": "terengganu",
+      "state_fullname": "Terengganu",
+      "total_vaccination_locations": 14
+    },
+    {
+      "state": "wpkualalumpur",
+      "state_fullname": "W.P. Kuala Lumpur",
+      "total_vaccination_locations": 5
+    },
+    {
+      "state": "wpputrajaya",
+      "state_fullname": "W.P. Putrajaya",
+      "total_vaccination_locations": 3
+    }
+  ]
 }
 ```
 
 
 
-### Vaccination Centre
+### Vaccination Centre by state
 
 ```http
 GET http://localhost:5001/vaccinemy-101/asia-southeast2/vaccineMY101api/vaccination-centre/:state

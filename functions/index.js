@@ -3,6 +3,8 @@ const admin = require("firebase-admin");
 admin.initializeApp();
 
 const db = admin.firestore();
+
+
 const bucket = admin.storage().bucket('default-bucket');
 const express = require('express');
 const handleCrawlEvent = require('./expressHandlers/handleCrawlEvent.js')
@@ -18,7 +20,7 @@ const app = express();
 app.post('/crawl', (req, res) => handleCrawlEvent(req, res, functions, db, log));
 app.get('/statistics', (req, res) => showAllStatistics(req, res, functions, db));
 app.get('/statistics/:state', (req, res) => findStatisticByState(req, res, functions, db));
-app.get('/vaccination-centre', (req, res) => showAllVaccinationCentre(req, res, functions, db));
+app.get('/vaccination-centre', async (req, res) => await showAllVaccinationCentre(req, res, functions, db));
 app.get('/vaccination-centre/:state', (req, res) => findVaccinationCentreByState(req, res, functions, db));
 // // Create and Deploy Your First Cloud Functions
 // // https://firebase.google.com/docs/functions/write-firebase-functions

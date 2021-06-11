@@ -1,6 +1,6 @@
 const axios = require('axios');
 module.exports = async (req, res, functions, db) => {
-	const stateStatistic =  db.collection('statistics');
+	const stateStatistic =  db.collection(`statistics`);
 
 	const snapshot = await stateStatistic.where('nme', '==', req.params.state).limit(1).get();
 

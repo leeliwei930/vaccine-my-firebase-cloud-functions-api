@@ -1,8 +1,8 @@
 module.exports = async (req, res, functions, db) => {
 
-	const vaccinationCentreCollection =  db.collection('vaccination_centre');
+	const vaccinationCentreCollection =  db.collection('vaccination_centre').doc(req.params.state);
 
-	const snapshot = await vaccinationCentreCollection.where('cd', '==', req.params.state).get();
+	const snapshot = await vaccinationCentreCollection.collection('locations').get();
 
 	if (!snapshot.empty) {
 		let data = [];
