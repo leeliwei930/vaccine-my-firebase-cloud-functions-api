@@ -1,5 +1,7 @@
 {
   "projects": {
-    "default": "vaccinemy-101"
+    "default": "vaccinemy-101",
+    "storageBucket":"vaccinemy-101.appspot.com"
+
   }
 }

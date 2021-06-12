@@ -20,11 +20,26 @@ module.exports = async (object, bucket, db, log) => {
 			
 			let parent = null;
 			records.forEach((record, index) => {
-				parent = db.collection(`vaccination_centre`).doc(record.cd).collection('locations')
-
-				batch.set(parent.doc(), record)
+				parent = db.collection(`vaccination_centre`).doc(record.cd)
+				if (stateRecorded[record.cd] === undefined) {
+					batch.set(parent, { state: record.cd, state_fullname: record.st})
+					stateRecorded[record.cd] = 1;
+				} else {
+					stateRecorded[record.cd] += 1;
+				}
+				let location = parent.collection('locations')
+				batch.set(location.doc(), record)
 			})
 			commitResponse = await batch.commit();
+
+			updateBatch = db.batch();
+			Object.keys(stateRecorded).forEach(stateMeta => {
+				record = db.collection(`vaccination_centre`).doc(stateMeta)
+				updateBatch.update(record, {count: stateRecorded[stateMeta]})
+			})
+
+			await updateBatch.commit();
+
 			log(`Completed  ${commitResponse.length} vaccination centre data import at ${Date()}`)
 			return fs.unlinkSync(tempFilePath);
 		} catch (error) {

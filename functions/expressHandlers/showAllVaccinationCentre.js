@@ -1,18 +1,16 @@
-const axios = require('axios');
 module.exports = async (req, res, functions, db) => {
-	const snapshot = await db.collection('vaccination_centre').listDocuments()
+	const snapshot = await db.collection('vaccination_centre').get()
 	let states = [];
 	snapshot.forEach( (record) => {
-		states.push(record.id)
+		states.push(record.data())
 	})
+
 	let data = [];
 	for (var i = 0; i < states.length; i++) {
-		let zones = await db.collection('vaccination_centre').doc(states[i]).collection("locations").listDocuments()
-		let firstZone = await zones[0].get();
 		data.push({
-			state: states[i],
-			state_fullname: firstZone.data().st,
-			total_vaccination_locations : zones.length
+			state: states[i].state,
+			state_fullname: states[i].state_fullname,
+			total_vaccination_locations : states[i].count
 		})
 	}
 

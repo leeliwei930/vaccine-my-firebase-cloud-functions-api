@@ -30,6 +30,7 @@ async function handleCrawl(req, res, functions, db, log)  {
 		statisticResponse.data.data.forEach((record) => {
 			let _record = {
 				nme: record['nme'] ?? "",
+				id: record['nme'] ? record['nme'].toLowerCase().split(" ").join("") : "",
 				regtotal: Number(record['regtotal'] ?? 0),
 				pop_18: Number(record['pop_18'] ?? 0),
 				vakdose1: Number(record['vakdose1'] ?? 0),
