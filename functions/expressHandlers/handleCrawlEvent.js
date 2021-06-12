@@ -13,6 +13,8 @@ async function handleCrawl(req, res, functions, db, log)  {
 
 	let params = {};
 	params[currentUnixTime] = null;
+
+	log(`Incoming Request from ${req.ip}`)
 	// crawl news
 	try {
 		let statisticResponse = await axios.get("https://covidbucketbbc.s3-ap-southeast-1.amazonaws.com/heatdata.json", {
@@ -24,8 +26,6 @@ async function handleCrawl(req, res, functions, db, log)  {
 	
 		await deleteCollection(db, "statistics")
 		
-
-
 		const statisticBatch = db.batch();
 		statisticResponse.data.data.forEach((record) => {
 			let _record = {
@@ -41,10 +41,11 @@ async function handleCrawl(req, res, functions, db, log)  {
 		let statisticCommitResponse = await statisticBatch.commit();
 	
 		await db.collection('meta').doc('statistics').set({lastUpdated: statisticResponse.data.updated})
-		let result = { result: "done", "message": `${statisticCommitResponse.length} state statistic records imported` }
+		let result = { result: "done", message: `${statisticCommitResponse.length} state statistic records imported` }
 		log(result)
 		return res.status(200).json(result)
 	} catch (error) {
+		log(error)
 		return res.status(500).json({result: error.toString()})
 	}
 

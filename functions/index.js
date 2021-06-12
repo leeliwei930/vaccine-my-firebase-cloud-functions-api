@@ -5,7 +5,7 @@ admin.initializeApp();
 const db = admin.firestore();
 
 
-const bucket = admin.storage().bucket('default-bucket');
+const bucket = admin.storage().bucket('vaccinemy-101.appspot.com');
 const express = require('express');
 const handleCrawlEvent = require('./expressHandlers/handleCrawlEvent.js')
 const showAllStatistics = require('./expressHandlers/showAllStatistics.js')
@@ -37,6 +37,6 @@ exports.vaccineMY101api = functions.runWith(runtimeOpts).region('asia-southeast2
 
 exports.autoImportVaccinationCentre = functions.runWith(runtimeOpts).region('asia-southeast2').storage.object().onFinalize(async (object) => {
   if (object.name == "centre.json" ) {
-     autoImportVaccinationCentre(object, bucket, db, log)
+     await autoImportVaccinationCentre(object, bucket, db, log)
   }
 });
