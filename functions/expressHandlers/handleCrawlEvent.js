@@ -1,6 +1,8 @@
 const axios = require('axios');
 
-module.exports =  (req, res, functions, db, log) => {
+module.exports = (req, res, functions, db, log) => {
+	
+	// check api key against runtime config
 	if (req.headers.authorization === `Bearer ${functions.config().server.cronjob_key}`) {
 		return handleCrawl(req, res, functions, db, log)
 	}
@@ -8,11 +10,15 @@ module.exports =  (req, res, functions, db, log) => {
 }
 
 
-async function handleCrawl(req, res, functions, db, log)  {
+async function handleCrawl(req, res, functions, db, log) {
+	
+	// get the current UTC unix time
 	let currentUnixTime = Math.floor(Date.now() / 1000)
 
 	let params = {};
+	// inject the UTC time as query params key with null value for query latest data from S3 bucket
 	params[currentUnixTime] = null;
+	// log client IP / server IP for auditing
 	const clientIP = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.headers['fastly-client-ip'];
 	log(`Incoming Request from ${clientIP}`)
 	// crawl news
@@ -23,10 +29,13 @@ async function handleCrawl(req, res, functions, db, log)  {
 				"User-Agent" : "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36 Edg/91.0.864.41"
 			}
 		});
-	
+		
+		// clear existing collection
 		await deleteCollection(db, "statistics")
 		
+		// start a batch transaction process
 		const statisticBatch = db.batch();
+		// iterate each data record and append the transaction batch
 		statisticResponse.data.data.forEach((record) => {
 			let _record = {
 				nme: record['nme'] ?? "",
@@ -39,14 +48,17 @@ async function handleCrawl(req, res, functions, db, log)  {
 			}
 			statisticBatch.set(db.collection('statistics').doc(), _record)
 		})
+		// commit transaction
 		let statisticCommitResponse = await statisticBatch.commit();
 	
-		await db.collection('meta').doc('statistics').set({lastUpdated: statisticResponse.data.updated})
+		// store the number of count in records
+		await db.collection('meta').doc('statistics').set({ lastUpdated: statisticResponse.data.updated })
+		// response object data
 		let result = { result: "done", message: `${statisticCommitResponse.length} state statistic records imported` }
 		log(result)
 		return res.status(200).json(result)
 	} catch (error) {
-		log(error)
+		log(error) // internal server error handing
 		return res.status(500).json({result: error.toString()})
 	}
 

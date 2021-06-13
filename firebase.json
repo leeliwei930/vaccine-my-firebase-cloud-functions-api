@@ -5,16 +5,20 @@
   },
   "emulators": {
     "functions": {
+      "host" : "192.168.1.80",
       "port": 5001
     },
     "firestore": {
+      "host" : "192.168.1.80",
       "port": 8080
     },
     "ui": {
+      "host" : "192.168.1.80",
       "enabled": true,
       "port": 8081
     },
     "storage": {
+      "host" : "192.168.1.80",
       "port": 9199
     }
   },

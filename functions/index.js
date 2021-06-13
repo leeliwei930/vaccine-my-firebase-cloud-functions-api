@@ -31,10 +31,12 @@ app.get('/vaccination-centre/:state', (req, res) => findVaccinationCentreByState
 //   functions.logger.info("Hello logs!", {structuredData: true});
 //   response.send("Hello from Firebase!");
 // });
+// Cloud function deploy spec
 const runtimeOpts = {
   timeoutSeconds: 90,
   memory: '512MB'
 }
+// Express App Instance run on cloud function HTTP trigger
 exports.vaccineMY101api = functions.runWith(runtimeOpts).region('asia-southeast2').https.onRequest(app);
 
 exports.autoImportVaccinationCentre = functions.runWith(runtimeOpts).region('asia-southeast2').storage.object().onFinalize(async (object) => {
