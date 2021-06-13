@@ -13,8 +13,8 @@ async function handleCrawl(req, res, functions, db, log)  {
 
 	let params = {};
 	params[currentUnixTime] = null;
-
-	log(`Incoming Request from ${req.ip}`)
+	const clientIP = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.headers['fastly-client-ip'];
+	log(`Incoming Request from ${clientIP}`)
 	// crawl news
 	try {
 		let statisticResponse = await axios.get("https://covidbucketbbc.s3-ap-southeast-1.amazonaws.com/heatdata.json", {
