@@ -30,32 +30,47 @@ async function handleCrawl(req, res, functions, db, log) {
 			}
 		});
 		
-		// clear existing collection
-		await deleteCollection(db, "statistics")
-		
-		// start a batch transaction process
-		const statisticBatch = db.batch();
-		// iterate each data record and append the transaction batch
-		statisticResponse.data.data.forEach((record) => {
-			let _record = {
-				nme: record['nme'] ?? "",
-				id: record['nme'] ? record['nme'].toLowerCase().split(" ").join("") : "",
-				regtotal: Number(record['regtotal'] ?? 0),
-				pop_18: Number(record['pop_18'] ?? 0),
-				vakdose1: Number(record['vakdose1'] ?? 0),
-				vakdose2: Number(record['vakdose2'] ?? 0),
-				vakdosecomplete: Number(record['vakdosecomplete'] ?? 0)
+		let meta = await db.collection('meta').doc('statistics').get();
+		let result = {
+			result: "",
+			message: ""
+		};
+
+		if (!meta.exists) {
+			await db.collection('meta').doc('statistics').set({ lastUpdated:  -1 })
+			meta = await db.collection('meta').doc('statistics').get();
+		}
+		if (statisticResponse.data.updated > meta.data().lastUpdated) {
+				// clear existing collection
+				await deleteCollection(db, "statistics")
+				
+				// start a batch transaction process
+				const statisticBatch = db.batch();
+				// iterate each data record and append the transaction batch
+				statisticResponse.data.data.forEach((record) => {
+					let _record = {
+						nme: record['nme'] ?? "",
+						id: record['nme'] ? record['nme'].toLowerCase().split(" ").join("") : "",
+						regtotal: Number(record['regtotal'] ?? 0),
+						pop_18: Number(record['pop_18'] ?? 0),
+						vakdose1: Number(record['vakdose1'] ?? 0),
+						vakdose2: Number(record['vakdose2'] ?? 0),
+						vakdosecomplete: Number(record['vakdosecomplete'] ?? 0)
+					}
+					statisticBatch.set(db.collection('statistics').doc(), _record)
+				})
+				// commit transaction
+				let statisticCommitResponse = await statisticBatch.commit();
+			
+				// store the number of count in records
+				await db.collection('meta').doc('statistics').set({ lastUpdated: statisticResponse.data.updated })
+				// response object data
+				result = { result: "done", message: `${statisticCommitResponse.length}` + "state statistic records imported" }
+				log(result.message)
+				return res.status(200).json(result)
 			}
-			statisticBatch.set(db.collection('statistics').doc(), _record)
-		})
-		// commit transaction
-		let statisticCommitResponse = await statisticBatch.commit();
-	
-		// store the number of count in records
-		await db.collection('meta').doc('statistics').set({ lastUpdated: statisticResponse.data.updated })
-		// response object data
-		let result = { result: "done", message: `${statisticCommitResponse.length} state statistic records imported` }
-		log(result)
+		result = { result: "done", message: "All statistic data sync" }
+		log(result.message)
 		return res.status(200).json(result)
 	} catch (error) {
 		log(error) // internal server error handing
