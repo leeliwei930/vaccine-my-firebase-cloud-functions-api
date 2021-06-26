@@ -39,8 +39,11 @@ const runtimeOpts = {
 // Express App Instance run on cloud function HTTP trigger
 exports.vaccineMY101api = functions.runWith(runtimeOpts).region('asia-southeast2').https.onRequest(app);
 
-exports.autoImportVaccinationCentre = functions.runWith(runtimeOpts).region('asia-southeast2').storage.object().onFinalize(async (object) => {
+exports.autoImportVaccinationCentre = functions.runWith({
+  timeoutSeconds: 90,
+  memory: '512MB'
+}).region('asia-southeast2').storage.object().onFinalize(async (object) => {
   if (object.name == "centre.json" ) {
-     await autoImportVaccinationCentre(object, bucket, db, log)
+     await autoImportVaccinationCentre(functions, object, bucket, db, log)
   }
 });

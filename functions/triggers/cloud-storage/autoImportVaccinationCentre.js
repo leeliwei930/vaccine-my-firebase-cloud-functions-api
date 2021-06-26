@@ -2,7 +2,8 @@
 const os = require('os')
 const path = require('path')
 const fs = require('fs')
-module.exports = async (object, bucket, db, log) => {
+const firebase_tools = require('firebase-tools')
+module.exports = async (functions, object, bucket, db, log) => {
 	log(object.contentType)
 	log(object.bucket)
 	log(object.name)
@@ -14,20 +15,34 @@ module.exports = async (object, bucket, db, log) => {
 		log(`Download to temp file path ${tempFilePath}`)
 		try {
 			// clear all the collection
-			await deleteCollection(db, 'vaccination_centre')
+
 			// download the centre.json file
 			await bucket.file(object.name).download({ destination: tempFilePath, validation: false })
 			// import the json data file
 			let records = require(tempFilePath)
-
+			let batches = [];
 			// transaction batch instance
-			const batch = db.batch();
 			// use for memoization and storing each state vaccination centre count
 			let stateRecorded = {};
 			
 			let parent = null;
+			let token  = ""
+			if (functions.config().firebase) {
+				token = functions.config().firebase.token
+			}
+			await firebase_tools.firestore.delete('vaccination_centre', {
+				project: process.env.GCLOUD_PROJECT,
+				recursive: true,
+				yes: true,
+				token: token
+			})
+
 			// iterate each data record
-			records.forEach((record, index) => {
+			records.every(async (record, index) => {
+				if (index % 249 == 0) {
+					batches.push(db.batch())
+				}
+				let batch = batches[batches.length - 1]
 				parent = db.collection(`vaccination_centre`).doc(record.cd)
 				// if there is not state recorded before
 				if (stateRecorded[record.cd] === undefined) {
@@ -41,8 +56,15 @@ module.exports = async (object, bucket, db, log) => {
 				let location = parent.collection('locations')
 				// append vaccination centre document 
 				batch.set(location.doc(), record)
+				
 			})
-			commitResponse = await batch.commit();
+
+
+			let totalWrites = 0;
+			for (batchTx of batches) {
+				let commitResponse = await batchTx.commit()
+				totalWrites += commitResponse.length
+			}
 			// update batch for updating vaccination centre count
 			updateBatch = db.batch();
 
@@ -53,7 +75,7 @@ module.exports = async (object, bucket, db, log) => {
 			// commit transaction
 			await updateBatch.commit();
 
-			log(`Completed  ${commitResponse.length} vaccination centre data import at ${Date()}`)
+			// log(`Completed  ${totalWrites} vaccination centre data import at ${Date()}`)
 			// clear the download file in temporary directory
 			return fs.unlinkSync(tempFilePath);
 		} catch (error) {
