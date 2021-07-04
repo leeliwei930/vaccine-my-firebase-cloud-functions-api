@@ -53,6 +53,7 @@ async function handleCrawl(req, res, functions, db, log) {
 						id: record['nme'] ? record['nme'].toLowerCase().split(" ").join("") : "",
 						regtotal: Number(record['regtotal'] ?? 0),
 						pop_18: Number(record['pop_18'] ?? 0),
+						pop: Number(record['pop'] ?? 0),
 						vakdose1: Number(record['vakdose1'] ?? 0),
 						vakdose2: Number(record['vakdose2'] ?? 0),
 						vakdosecomplete: Number(record['vakdosecomplete'] ?? 0)
