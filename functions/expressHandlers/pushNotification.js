@@ -53,9 +53,26 @@ module.exports = {
         let stateSubscribers = await notificationService.prepareStateStatisticSubscribersList(
             db
         );
+        let englishNotificationResponse = await notificationService.pushLocalStatisticNotification(
+            localSubscribers["en_US"],
+            firebaseAdmin,
+            "en_US"
+        );
+        let chineseLangNotificationResponse = await notificationService.pushLocalStatisticNotification(
+            localSubscribers["zh"],
+            firebaseAdmin,
+            "zh"
+        );
+        let stateNotificationResponse = await notificationService.pushStateStatisticNotification(
+            stateSubscribers,
+            firebaseAdmin
+        );
         return res.status(202).json({
-            local_subscribers: localSubscribers,
-            state_subscribers: stateSubscribers,
+            local_notification_response: {
+                en_US: englishNotificationResponse,
+                zh: chineseLangNotificationResponse,
+            },
+            state_subscribers: stateNotificationResponse,
         });
         // english lang
     },
