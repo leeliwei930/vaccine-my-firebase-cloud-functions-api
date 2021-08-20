@@ -1,4 +1,5 @@
 const notificationService = require("../../services/notification_service");
+const moment = require("moment");
 module.exports = {
     async registerDeviceToken(req, res, functions, db, log, firebaseAdmin) {
         let deviceSnapshotQuery = db
@@ -19,6 +20,7 @@ module.exports = {
                         req.body.subscribed_daily_local_statistic_notification,
                     subscribed_daily_state_statistic_notification:
                         req.body.subscribed_daily_state_statistic_notification,
+                    last_active_at: moment.utc().unix(),
                 });
             deviceSnapshot = await deviceSnapshotQuery.get();
             device = deviceSnapshot.docs[0];
@@ -32,6 +34,7 @@ module.exports = {
                     req.body.subscribed_daily_local_statistic_notification,
                 subscribed_daily_state_statistic_notification:
                     req.body.subscribed_daily_state_statistic_notification,
+                last_active_at: moment.utc().unix(),
             });
             let createdDeviceSnapshot = await createdDeviceRef.get();
             return res.status(201).json({
@@ -47,6 +50,12 @@ module.exports = {
         log,
         firebaseAdmin
     ) {
+        if (
+            req.headers.authorization !=
+            `Bearer ${functions.config().server.cronjob_key}`
+        ) {
+            return res.status(401).json({ result: "unauthorized" });
+        }
         let localSubscribers = await notificationService.prepareLocalStatisticSubscribersList(
             db
         );
@@ -67,12 +76,22 @@ module.exports = {
             stateSubscribers,
             firebaseAdmin
         );
+        let failed_tokens = [
+            ...englishNotificationResponse.failed_tokens,
+            ...chineseLangNotificationResponse.failed_tokens,
+            ...stateNotificationResponse.failed_tokens,
+        ];
+        let cleanupResponse = await notificationService.clearInvalidToken(
+            db,
+            failed_tokens
+        );
         return res.status(202).json({
             local_notification_response: {
                 en_US: englishNotificationResponse,
                 zh: chineseLangNotificationResponse,
             },
             state_subscribers: stateNotificationResponse,
+            device_cleanup: cleanupResponse,
         });
         // english lang
     },

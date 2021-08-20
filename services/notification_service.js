@@ -32,7 +32,7 @@ module.exports = {
                 .startAfter(tailRecord)
                 .limit(500)
                 .get();
-            while (nextBatches.size() > 0) {
+            while (nextBatches.size > 0) {
                 let lastRecord = nextBatches.docs[nextBatches.docs.length - 1];
                 nextBatches = await db
                     .collection("devices")
@@ -86,7 +86,7 @@ module.exports = {
                 .startAfter(tailRecord)
                 .limit(500)
                 .get();
-            while (nextBatches.size() > 0) {
+            while (nextBatches.size > 0) {
                 let lastRecord = nextBatches.docs[nextBatches.docs.length - 1];
                 nextBatches = await db
                     .collection("devices")
@@ -137,12 +137,17 @@ module.exports = {
                 )}人接种次剂疫苗。`,
             },
         };
+        let responses = {
+            results: [],
+            failed_tokens: [],
+        };
         if (subscribers.length > 0) {
             let subscriberChunks = this.splitNotificationBatchSubscribers(
                 subscribers,
                 500
             );
-            let responses = [];
+
+            let failedTokens = [];
             for (tokens of subscriberChunks) {
                 let notificationPayload = this.generateLocalStatisticNotificationPayload(
                     language,
@@ -154,7 +159,7 @@ module.exports = {
                 let response = await firebaseAdmin
                     .messaging()
                     .sendMulticast(notificationPayload);
-                responses.push({
+                responses.results.push({
                     status: "accepted",
                     success_count: response.successCount,
                     responses: response.responses,
@@ -162,18 +167,23 @@ module.exports = {
                     message_title: message[language].title,
                     message_body: message[language].body,
                 });
+                if (response.failureCount > 0) {
+                    response.responses.forEach((notificationResponse, idx) => {
+                        if (!notificationResponse.success) {
+                            failedTokens.push(tokens[idx]);
+                        }
+                    });
+                }
             }
-            return responses;
         }
-        return {
-            status: "accepted",
-            success_count: 0,
-            failed_count: 0,
-        };
+        return responses;
     },
 
     async pushStateStatisticNotification(subscribers, firebaseAdmin) {
-        let responses = [];
+        let responses = {
+            results: [],
+            failed_tokens: [],
+        };
 
         for (state of Object.keys(subscribers)) {
             for (lang of Object.keys(subscribers[state])) {
@@ -199,7 +209,7 @@ module.exports = {
                             title: `昨日(${date})州内疫苗接种进展`,
                             body: `${
                                 record.state
-                            } - 昨日已有${this.formatNumber(
+                            } - 截至昨日已有${this.formatNumber(
                                 record.daily_partial
                             )} 人接种首剂疫苗 和${this.formatNumber(
                                 record.daily_full
@@ -225,7 +235,7 @@ module.exports = {
                             let notificationResponse = await firebaseAdmin
                                 .messaging()
                                 .sendMulticast(notificationPayload);
-                            responses.push({
+                            responses.results.push({
                                 status: "accepted",
                                 success_count:
                                     notificationResponse.successCount,
@@ -234,6 +244,17 @@ module.exports = {
                                 message_title: message[lang].title,
                                 message_body: message[lang].body,
                             });
+                            if (notificationResponse.failureCount > 0) {
+                                notificationResponse.responses.forEach(
+                                    (_notificationResponse, idx) => {
+                                        if (!_notificationResponse.success) {
+                                            responses.failed_tokens.push(
+                                                tokens[idx]
+                                            );
+                                        }
+                                    }
+                                );
+                            }
                         }
                     }
                 } catch (error) {
@@ -307,5 +328,32 @@ module.exports = {
             results.push([...tokens.slice(i, i + chunk)]);
         }
         return results;
+    },
+    async clearInvalidToken(db, tokens) {
+        let response = {
+            invalid_devices: [],
+            deleted_devices: [],
+        };
+        if (tokens.length > 0) {
+            for (token of tokens) {
+                let invalidTokenSnapshot = await db
+                    .collection("devices")
+                    .where("device_token", "==", token)
+                    .get();
+                if (invalidTokenSnapshot.size > 0) {
+                    let invalidToken = invalidTokenSnapshot.docs[0];
+                    let isSuccess = await db
+                        .collection("devices")
+                        .doc(invalidToken.id)
+                        .delete();
+                    if (!isSuccess) {
+                        response.invalid_devices.push(invalidToken.id);
+                    } else {
+                        response.deleted_devices.push(invalidToken.data());
+                    }
+                }
+            }
+        }
+        return response;
     },
 };
