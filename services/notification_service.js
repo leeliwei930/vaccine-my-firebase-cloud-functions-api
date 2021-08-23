@@ -12,13 +12,17 @@ module.exports = {
 
         let tailRecord = localSubscribers.docs[localSubscribers.length - 1];
         let subscribers = {
-            en_US: [],
+            en_GB: [],
             zh: [],
         };
 
         localSubscribers.forEach((snapshot) => {
             let record = snapshot.data();
-            subscribers[record.language].push(record.device_token);
+            if (record.language.includes("zh")) {
+                subscribers.zh.push(record.device_token);
+            } else {
+                subscribers.en_GB.push(record.device_token);
+            }
         });
         if (tailRecord) {
             let nextBatches = await db
@@ -47,7 +51,11 @@ module.exports = {
                     .get();
                 nextBatches.forEach((snapshot) => {
                     let record = snapshot.data();
-                    subscribers[record.language].push(record.device_token);
+                    if (record.language.includes("zh")) {
+                        subscribers.zh.push(record.device_token);
+                    } else {
+                        subscribers.en_GB.push(record.device_token);
+                    }
                 });
             }
         }
@@ -69,11 +77,15 @@ module.exports = {
             let state = record.subscribed_daily_state_statistic_notification;
             if (!subscribers[state]) {
                 subscribers[state] = {
-                    en_US: [],
+                    en_GB: [],
                     zh: [],
                 };
             }
-            subscribers[state][record.language].push(record.device_token);
+            if (record.language.includes("zh")) {
+                subscribers[state].zh.push(record.device_token);
+            } else {
+                subscribers[state].en_GB.push(record.device_token);
+            }
         });
         if (tailRecord) {
             let nextBatches = await db
@@ -101,13 +113,15 @@ module.exports = {
                 nextBatches.forEach((record) => {
                     if (subscribers[state] != undefined) {
                         subscribers[state] = {
-                            en_US: [],
+                            en_GB: [],
                             zh: [],
                         };
                     }
-                    subscribers[state][record.language].push(
-                        record.device_token
-                    );
+                    if (record.language.includes("zh")) {
+                        subscribers[state].zh.push(record.device_token);
+                    } else {
+                        subscribers[state].en_GB.push(record.device_token);
+                    }
                 });
             }
         }
@@ -120,17 +134,17 @@ module.exports = {
         let record = latestLocalStatResponse.data.data;
         let date = moment(record.date).format("DD MMM YYYY");
         let message = {
-            en_US: {
-                title: `Update On Yesterday (${date}) Local Vaccination Progression`,
-                body: `${this.formatNumber(
+            en_GB: {
+                title: `Local Vaccination Progression Update`,
+                body: `As of yesterday [${date}] ${this.formatNumber(
                     record.daily_partial
                 )} people receive their first dose vaccine and ${this.formatNumber(
                     record.daily_full
-                )} people receive second dose vaccine in Malaysia`,
+                )} people receive second dose vaccine in Malaysia.`,
             },
             zh: {
-                title: `昨日(${date})国内疫苗接种计划进展`,
-                body: `截至昨日国内已有${this.formatNumber(
+                title: `国内疫苗接种计划进展`,
+                body: `截至昨日 [${date}] 国内已有${this.formatNumber(
                     record.daily_partial
                 )} 人接种首剂与 ${this.formatNumber(
                     record.daily_full
@@ -195,21 +209,21 @@ module.exports = {
                     let date = moment(record.date).format("DD MMM YYYY");
                     let tokens = subscribers[state][lang];
                     let message = {
-                        en_US: {
-                            title: `Yesterday(${date}) State Vaccination Progression`,
-                            body: `As for yesterday at ${
+                        en_GB: {
+                            title: `State Vaccination Progression Update`,
+                            body: `${
                                 record.state
-                            }, ${this.formatNumber(
+                            } - As of yesterday [${date}] ${this.formatNumber(
                                 record.daily_partial
                             )} people received their first dose and ${this.formatNumber(
                                 record.daily_full
                             )} people received second dose vaccines.`,
                         },
                         zh: {
-                            title: `昨日(${date})州内疫苗接种进展`,
+                            title: `州内疫苗接种进展`,
                             body: `${
                                 record.state
-                            } - 截至昨日已有${this.formatNumber(
+                            } - 截至昨日 [${date}] 已有${this.formatNumber(
                                 record.daily_partial
                             )} 人接种首剂疫苗 和${this.formatNumber(
                                 record.daily_full

@@ -15,7 +15,7 @@ module.exports = {
                 .set({
                     device_id: req.body.device_id,
                     device_token: req.body.device_token,
-                    language: req.body.device_lang,
+                    language: req.body.language,
                     subscribed_daily_local_statistic_notification:
                         req.body.subscribed_daily_local_statistic_notification,
                     subscribed_daily_state_statistic_notification:
@@ -29,7 +29,7 @@ module.exports = {
             let createdDeviceRef = await db.collection("devices").add({
                 device_id: req.body.device_id,
                 device_token: req.body.device_token,
-                language: req.body.device_lang,
+                language: req.body.language,
                 subscribed_daily_local_statistic_notification:
                     req.body.subscribed_daily_local_statistic_notification,
                 subscribed_daily_state_statistic_notification:
@@ -63,9 +63,9 @@ module.exports = {
             db
         );
         let englishNotificationResponse = await notificationService.pushLocalStatisticNotification(
-            localSubscribers["en_US"],
+            localSubscribers["en_GB"],
             firebaseAdmin,
-            "en_US"
+            "en_GB"
         );
         let chineseLangNotificationResponse = await notificationService.pushLocalStatisticNotification(
             localSubscribers["zh"],
@@ -87,7 +87,7 @@ module.exports = {
         );
         return res.status(202).json({
             local_notification_response: {
-                en_US: englishNotificationResponse,
+                en_GB: englishNotificationResponse,
                 zh: chineseLangNotificationResponse,
             },
             state_subscribers: stateNotificationResponse,
