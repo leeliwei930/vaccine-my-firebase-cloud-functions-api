@@ -1,4 +1,4 @@
-const notificationService = require("../../services/notification_service");
+const notificationService = require("./services/notification_service.js");
 const moment = require("moment");
 module.exports = {
     async registerDeviceToken(req, res, functions, db, log, firebaseAdmin) {

@@ -315,6 +315,9 @@ module.exports = {
         return {
             name: `${lang}_${state}_${date}_state_statistic_notification`,
             tokens: subscribers,
+            data: {
+                state: state,
+            },
             notification: {
                 title: title,
                 body: body,
