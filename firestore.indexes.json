@@ -1,6 +1,17 @@
 {
   "indexes": [
-
+    {
+      "collectionGroup": "devices",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "device_id", "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "subscribed_daily_local_statistic_notification", "order": "ASCENDING"
+        }
+      ]
+    }
   ],
   "fieldOverrides": []
 }

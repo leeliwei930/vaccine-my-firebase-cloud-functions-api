@@ -18,10 +18,12 @@ module.exports = {
 
         localSubscribers.forEach((snapshot) => {
             let record = snapshot.data();
-            if (record.language.includes("zh")) {
-                subscribers.zh.push(record.device_token);
-            } else {
-                subscribers.en_GB.push(record.device_token);
+            if (record.device_token.length > 0) {
+                if (record.language.includes("zh")) {
+                    subscribers.zh.push(record.device_token);
+                } else {
+                    subscribers.en_GB.push(record.device_token);
+                }
             }
         });
         if (tailRecord) {
@@ -51,10 +53,12 @@ module.exports = {
                     .get();
                 nextBatches.forEach((snapshot) => {
                     let record = snapshot.data();
-                    if (record.language.includes("zh")) {
-                        subscribers.zh.push(record.device_token);
-                    } else {
-                        subscribers.en_GB.push(record.device_token);
+                    if (record.device_token.length > 0) {
+                        if (record.language.includes("zh")) {
+                            subscribers.zh.push(record.device_token);
+                        } else {
+                            subscribers.en_GB.push(record.device_token);
+                        }
                     }
                 });
             }
@@ -81,10 +85,12 @@ module.exports = {
                     zh: [],
                 };
             }
-            if (record.language.includes("zh")) {
-                subscribers[state].zh.push(record.device_token);
-            } else {
-                subscribers[state].en_GB.push(record.device_token);
+            if (record.device_token.length > 0) {
+                if (record.language.includes("zh")) {
+                    subscribers[state].zh.push(record.device_token);
+                } else {
+                    subscribers[state].en_GB.push(record.device_token);
+                }
             }
         });
         if (tailRecord) {
@@ -117,10 +123,12 @@ module.exports = {
                             zh: [],
                         };
                     }
-                    if (record.language.includes("zh")) {
-                        subscribers[state].zh.push(record.device_token);
-                    } else {
-                        subscribers[state].en_GB.push(record.device_token);
+                    if (record.device_token.length > 0) {
+                        if (record.language.includes("zh")) {
+                            subscribers[state].zh.push(record.device_token);
+                        } else {
+                            subscribers[state].en_GB.push(record.device_token);
+                        }
                     }
                 });
             }
